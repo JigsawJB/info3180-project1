@@ -6,7 +6,12 @@ This file creates your application.
 """
 
 from app import app
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_user, logout_user, current_user, login_required
+#from app.forms import LoginForm
+#from app.models import UserProfile
+from werkzeug.security import check_password_hash
+
 
 
 ###
@@ -24,6 +29,21 @@ def about():
     """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
 
+@app.route('/properties/create')
+def create():
+    """Render the websites create page"""
+    ##
+
+
+@app.route('/properties')
+def properties():
+    """Render properties page"""
+    ##
+
+@app.route('/properties/<propertyid>')
+def individual_properties():
+    """Render individual property page"""
+    ##
 
 ###
 # The functions below should be applicable to all Flask apps.
