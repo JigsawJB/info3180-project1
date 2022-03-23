@@ -5,13 +5,13 @@ Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file creates your application.
 """
 
-from app import app
+import os
+from app import app , db
 from flask import render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, current_user, login_required
-#from app.forms import LoginForm
-#from app.models import UserProfile
-from werkzeug.security import check_password_hash
-
+from app.forms import PropertyForm
+from app.models import NewProperty
+from werkzeug.utils import secure_filename
+from flask.helpers import send_from_directory
 
 
 ###
@@ -27,23 +27,53 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Jaun-Luc Brown")
 
-@app.route('/properties/create')
+@app.route('/properties/create' , methods = ['POST' , 'GET'])
 def create():
     """Render the websites create page"""
-    ##
+    
+    pform = PropertyForm()
+    if request.method == 'POST' and pform.validate_on_submit():
+        property_title= pform.property_title.data
+        description=pform.description.data
+        rooms=pform.rooms.data
+        bathrooms=pform.bathrooms.data
+        price=pform.price.data
+        property_type =pform.property_type.data
+        location =pform.location.data
+        #photo=pform.photo.data
+        
+        photo= request.files['photo']
+        filename = secure_filename(photo.filename)
+        photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        propt = NewProperty(request.form['property_title'], request.form['description'], request.form['rooms'], request.form['bathrooms'], request.form['price'], request.form['property_type'], request.form['location'], filename)
+        db.session.add(propt)
+        db.session.commit()
+
+        flash('Property successfully added', 'success') 
+        return redirect(url_for('properties'))
+
+    return render_template('create.html' , form=pform)
 
 
 @app.route('/properties')
 def properties():
     """Render properties page"""
-    ##
+    prop = NewProperty.query.all()
+    return render_template('properties.html', prop = prop)
 
 @app.route('/properties/<propertyid>')
-def individual_properties():
+def propertyid(propertyid):
     """Render individual property page"""
-    ##
+    x = NewProperty.query.get(propertyid)
+    return render_template('prop_id.html' , property=x)
+
+@app.route('/uploads/<filename>')
+def get_image(filename):
+    root_dir = os.getcwd()
+    return send_from_directory(os.path.join(root_dir, app.config['UPLOAD_FOLDER']), filename)
 
 ###
 # The functions below should be applicable to all Flask apps.
